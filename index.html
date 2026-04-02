@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nando's Landos | Lawn Operations</title>
+    <meta
+      name="description"
+      content="Nando's Landos web app for managing lawn mowing jobs, clients, and weekly schedule."
+    />
+    <meta name="theme-color" content="#2c8ca8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Nando's Landos" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" sizes="192x192" href="icons/icon-192.svg" />
+    <link rel="apple-touch-icon" href="icons/icon-192.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <img
+      class="corner-mascot-left"
+      src="purplehaze.png"
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+    />
+    <img
+      class="corner-mascot"
+      src="johnnyjoestar.png"
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+    />
+
+    <main class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Nando's Landos Dashboard</p>
+          <h1>Nando's Landos</h1>
+          <p class="tagline">
+            Organize jobs, create routes, calendar, track payment, blah blah blah.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button id="exportButton" class="btn btn-secondary">Export CSV</button>
+          <button id="clearButton" class="btn btn-danger">Clear All</button>
+        </div>
+      </header>
+
+      <section class="stats" id="statsCards" aria-label="Business summary"></section>
+
+      <section class="panel tab-shell" aria-label="Job management tabs">
+        <div class="tab-bar" role="tablist" aria-label="Job management views">
+          <button class="tab-btn active" type="button" role="tab" aria-selected="true" data-tab="upcomingPanel">Upcoming Jobs</button>
+          <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="housesPanel">Recurring Houses</button>
+          <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="finishedPanel">Finished Jobs</button>
+        </div>
+
+        <section id="upcomingPanel" class="tab-panel active" role="tabpanel">
+          <div class="panel-header">
+            <h2>Upcoming Jobs</h2>
+            <input id="searchInput" type="search" placeholder="Search customer, address, or contact" />
+          </div>
+          <ul id="jobsList" class="jobs-list jobs-scroll"></ul>
+        </section>
+
+        <section id="housesPanel" class="tab-panel" role="tabpanel">
+          <div class="panel-header">
+            <h2>Recurring Houses</h2>
+            <input id="houseSearchInput" type="search" placeholder="Search houses or contacts" />
+          </div>
+          <ul id="housesList" class="jobs-list jobs-scroll"></ul>
+        </section>
+
+        <section id="finishedPanel" class="tab-panel" role="tabpanel">
+          <div class="panel-header">
+            <h2>Finished Jobs</h2>
+          </div>
+          <ul id="finishedJobsList" class="jobs-list jobs-scroll"></ul>
+        </section>
+      </section>
+
+      <section class="panel week-panel" aria-label="Weekly route board">
+        <div class="panel-header">
+          <h2>Weekly Route Board</h2>
+          <div class="board-controls">
+            <label class="hq-label" for="hqAddressInput">
+              HQ Address
+              <input id="hqAddressInput" type="text" placeholder="e.g. 20 Main St, Your City" />
+            </label>
+            <button id="saveHqButton" class="btn btn-secondary" type="button">Save HQ</button>
+            <button id="routeWeekButton" class="btn btn-primary" type="button">Create Optimized Route</button>
+          </div>
+        </div>
+        <p class="board-help">Drag to reschedule on desktop, or tap a job then tap a day on mobile.</p>
+        <div id="weekBoard" class="week-board"></div>
+      </section>
+
+      <section class="layout-grid">
+        <article class="panel form-panel">
+          <h2>Add New Job</h2>
+          <form id="jobForm" class="job-form" autocomplete="off">
+            <label>
+              Customer Name
+              <input type="text" id="customerName" required placeholder="e.g. Maria Gonzales" />
+            </label>
+
+            <label>
+              Contact Info / Phone Number
+              <input type="tel" id="contactInfo" required placeholder="e.g. (555) 123-4567" />
+            </label>
+
+            <label>
+              Address
+              <input type="text" id="address" required placeholder="123 River St" />
+            </label>
+
+            <div class="split">
+              <label>
+                Service Date
+                <input type="date" id="serviceDate" required />
+              </label>
+
+              <label>
+                Status
+                <select id="status" required>
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Delayed">Delayed</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="split">
+              <label>
+                Price ($)
+                <input type="number" id="price" min="0" step="0.01" required placeholder="45" />
+              </label>
+
+              <label>
+                Service Type
+                <input
+                  type="text"
+                  id="serviceType"
+                  required
+                  placeholder="e.g. Mow + Edge, Leaf Cleanup, Hedge Trim"
+                />
+              </label>
+            </div>
+
+            <label>
+              Recurrence
+              <select id="recurrence" required>
+                <option value="One-time">One-time</option>
+                <option value="Bi-weekly">Bi-weekly</option>
+              </select>
+            </label>
+
+            <label>
+              Notes
+              <textarea id="notes" rows="3" placeholder="Gate code, pet warning, preferred time..."></textarea>
+            </label>
+
+            <button type="submit" class="btn btn-primary">Save Job</button>
+          </form>
+        </article>
+
+    </main>
+
+    <template id="jobItemTemplate">
+      <li class="job-item">
+        <div class="job-head">
+          <h3></h3>
+          <span class="pill"></span>
+        </div>
+        <p class="contact"></p>
+        <p class="address"></p>
+        <p class="meta"></p>
+        <p class="notes"></p>
+        <div class="job-actions">
+          <a class="btn btn-secondary route-link" target="_blank" rel="noopener noreferrer">Route</a>
+          <button class="btn btn-secondary mark-complete">Mark Complete</button>
+          <button class="btn btn-danger delete">Delete</button>
+        </div>
+      </li>
+    </template>
+
+    <template id="finishedJobItemTemplate">
+      <li class="job-item finished-item">
+        <div class="job-head">
+          <h3></h3>
+          <span class="pill" data-status="Completed">Completed</span>
+        </div>
+        <p class="contact"></p>
+        <p class="address"></p>
+        <p class="meta"></p>
+        <p class="notes"></p>
+        <div class="job-actions">
+          <button class="btn btn-secondary reopen">Move To Upcoming</button>
+          <button class="btn btn-danger delete-finished">Delete</button>
+        </div>
+      </li>
+    </template>
+
+    <template id="houseItemTemplate">
+      <li class="job-item house-item">
+        <div class="job-head">
+          <h3></h3>
+          <span class="pill house-pill">Bi-weekly</span>
+        </div>
+        <p class="contact"></p>
+        <p class="address"></p>
+        <p class="meta"></p>
+        <p class="notes"></p>
+        <div class="job-actions">
+          <button class="btn btn-secondary edit-house" type="button">Edit</button>
+          <button class="btn btn-danger delete-house" type="button">Delete</button>
+        </div>
+      </li>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>

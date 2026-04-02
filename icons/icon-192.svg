@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="Nando's Landos icon">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#38b37f" />
+      <stop offset="100%" stop-color="#2c8ca8" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="36" fill="url(#g)" />
+  <path d="M42 132h108v14H42z" fill="#0f2b1e" opacity="0.28" />
+  <path d="M50 122c0-28 22-50 46-50 17 0 28 10 34 22 4-8 10-13 18-16-7 18-13 35-26 44-13 9-31 10-48 10H50z" fill="#f2f8f5" />
+  <text x="96" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#f2f8f5">NL</text>
+</svg>

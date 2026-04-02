@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline | Nando's Landos</title>
+    <style>
+      :root {
+        --bg: #f2f8f5;
+        --ink: #102319;
+        --soft: #365845;
+        --card: #ffffff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: Sora, Arial, sans-serif;
+        background: linear-gradient(145deg, #ecf8ff, var(--bg));
+        color: var(--ink);
+        padding: 1rem;
+      }
+      .card {
+        max-width: 460px;
+        width: 100%;
+        background: var(--card);
+        border-radius: 16px;
+        padding: 1.1rem;
+        border: 1px solid rgba(16, 35, 25, 0.12);
+      }
+      h1 {
+        margin: 0 0 0.5rem;
+      }
+      p {
+        margin: 0;
+        color: var(--soft);
+      }
+    </style>
+  </head>
+  <body>
+    <article class="card">
+      <h1>You're Offline</h1>
+      <p>Nando's Landos is unavailable right now. Reconnect to sync routes and maps.</p>
+    </article>
+  </body>
+</html>
