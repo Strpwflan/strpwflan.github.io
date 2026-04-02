@@ -1,6 +1,7 @@
 const STORAGE_KEY = "nandos-landos-jobs";
 const FINISHED_STORAGE_KEY = "nandos-landos-finished-jobs";
 const HQ_STORAGE_KEY = "nandos-landos-hq-address";
+const SKIPPED_OCCURRENCES_KEY = "nandos-landos-skipped-occurrences";
 
 const form = document.getElementById("jobForm");
 const jobsList = document.getElementById("jobsList");
@@ -31,6 +32,7 @@ const statusOrder = {
 
 let jobs = loadJobs();
 let finishedJobs = loadFinishedJobs();
+let skippedOccurrences = loadSkippedOccurrences();
 let hqAddress = loadHqAddress();
 let selectedMobileJobId = null;
 let editingJobId = null;
@@ -65,10 +67,11 @@ form.addEventListener("submit", (event) => {
 
   editingJobId = null;
   setFormMode("add");
+  setActiveTab("upcomingPanel", true);
   persist();
   render();
   form.reset();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  scrollToOperationsCenter();
 });
 
 searchInput.addEventListener("input", () => {
@@ -90,6 +93,7 @@ clearButton.addEventListener("click", () => {
   if (!confirmed) return;
   jobs = [];
   finishedJobs = [];
+  skippedOccurrences = [];
   editingJobId = null;
   setFormMode("add");
   persist();
@@ -121,7 +125,14 @@ jobsList.addEventListener("click", (event) => {
   if (!selectedJob) return;
 
   if (actionTarget.classList.contains("delete")) {
-    jobs = jobs.filter((job) => job.id !== id);
+    if (kind === "house") {
+      const skippedDate = occurrenceDate || selectedJob.serviceDate;
+      if (skippedDate && !isOccurrenceSkipped(selectedJob.id, skippedDate)) {
+        skippedOccurrences.push({ sourceId: selectedJob.id, serviceDate: skippedDate });
+      }
+    } else {
+      jobs = jobs.filter((job) => job.id !== id);
+    }
   }
 
   if (actionTarget.classList.contains("mark-complete")) {
@@ -156,6 +167,7 @@ housesList.addEventListener("click", (event) => {
 
   if (actionTarget.classList.contains("delete-house")) {
     jobs = jobs.filter((job) => job.id !== id);
+    skippedOccurrences = skippedOccurrences.filter((entry) => entry.sourceId !== id);
   }
 
   if (actionTarget.classList.contains("edit-house")) {
@@ -458,7 +470,7 @@ function renderUpcomingJobs() {
     routeLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(entry.address)}`;
 
     completeButton.textContent = entry.kind === "house" ? "Mark Complete" : "Mark Complete";
-    deleteButton.textContent = entry.kind === "house" ? "Delete House" : "Delete";
+    deleteButton.textContent = "Delete";
 
     jobsList.appendChild(node);
   });
@@ -504,6 +516,7 @@ function renderHouses() {
     notes.textContent = job.notes || "No notes";
     editButton.dataset.id = job.id;
     deleteButton.dataset.id = job.id;
+    deleteButton.textContent = "Delete House";
 
     housesList.appendChild(node);
   });
@@ -600,6 +613,12 @@ function isOccurrenceCompleted(jobId, isoDate) {
   );
 }
 
+function isOccurrenceSkipped(jobId, isoDate) {
+  return skippedOccurrences.some(
+    (entry) => entry.sourceId === jobId && entry.serviceDate === isoDate
+  );
+}
+
 function getNextRecurringOccurrenceDate(job, fromIsoDate) {
   const from = parseIsoDate(fromIsoDate);
   const start = parseIsoDate(job.serviceDate) || from;
@@ -617,6 +636,7 @@ function getNextRecurringOccurrenceDate(job, fromIsoDate) {
       const candidateIso = toIsoDate(candidate);
       if (candidate < from || candidate < start) continue;
       if (isOccurrenceCompleted(job.id, candidateIso)) continue;
+      if (isOccurrenceSkipped(job.id, candidateIso)) continue;
       return candidateIso;
     }
   }
@@ -672,6 +692,22 @@ function setFormMode(mode) {
   submitButton.textContent = "Save Job";
 }
 
+function scrollToOperationsCenter() {
+  const upcomingSection = document.querySelector(".tab-shell");
+  const weeklySection = document.querySelector(".week-panel");
+
+  if (!upcomingSection || !weeklySection) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
+  const upcomingTop = upcomingSection.getBoundingClientRect().top + window.scrollY;
+  const weeklyBottom = weeklySection.getBoundingClientRect().bottom + window.scrollY;
+  const targetTop = Math.max(0, (upcomingTop + weeklyBottom) / 2 - window.innerHeight / 2);
+
+  window.scrollTo({ top: targetTop, behavior: "smooth" });
+}
+
 function getWeekDates() {
   const now = new Date();
   const day = now.getDay();
@@ -700,7 +736,7 @@ function occursOnDate(job, isoDate) {
   const dayOfMonth = target.getDate();
   if (dayOfMonth !== 1 && dayOfMonth !== 14) return false;
 
-  return !isOccurrenceCompleted(job.id, isoDate);
+  return !isOccurrenceCompleted(job.id, isoDate) && !isOccurrenceSkipped(job.id, isoDate);
 }
 
 function getNextOccurrenceDate(job, fromIsoDate) {
@@ -1057,6 +1093,7 @@ function escapeCsv(value) {
 function persist() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
   localStorage.setItem(FINISHED_STORAGE_KEY, JSON.stringify(finishedJobs));
+  localStorage.setItem(SKIPPED_OCCURRENCES_KEY, JSON.stringify(skippedOccurrences));
 }
 
 function persistHqAddress() {
@@ -1140,6 +1177,26 @@ function loadFinishedJobs() {
         recurrence: normalizeRecurrence(job.recurrence),
         notes: job.notes || "",
       }));
+  } catch {
+    return [];
+  }
+}
+
+function loadSkippedOccurrences() {
+  try {
+    const raw = localStorage.getItem(SKIPPED_OCCURRENCES_KEY);
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter((entry) => {
+      return (
+        entry &&
+        typeof entry.sourceId === "string" &&
+        typeof entry.serviceDate === "string"
+      );
+    });
   } catch {
     return [];
   }
