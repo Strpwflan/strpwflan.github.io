@@ -693,19 +693,18 @@ function setFormMode(mode) {
 }
 
 function scrollToOperationsCenter() {
-  const upcomingSection = document.querySelector(".tab-shell");
   const weeklySection = document.querySelector(".week-panel");
 
-  if (!upcomingSection || !weeklySection) {
+  if (!weeklySection) {
     window.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
 
-  const upcomingTop = upcomingSection.getBoundingClientRect().top + window.scrollY;
-  const weeklyBottom = weeklySection.getBoundingClientRect().bottom + window.scrollY;
-  const targetTop = Math.max(0, (upcomingTop + weeklyBottom) / 2 - window.innerHeight / 2);
-
-  window.scrollTo({ top: targetTop, behavior: "smooth" });
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      weeklySection.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
 }
 
 function getWeekDates() {
